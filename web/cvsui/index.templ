@@ -1,0 +1,28 @@
+package cvsui
+
+import "forms/pg"
+import "forms/web"
+import "fmt"
+import "github.com/templ-go/x/urlbuilder"
+import "strconv"
+
+func cvPath(id int64) string {
+    return fmt.Sprintf("/cvs/%d", id)
+}
+
+templ Index(files []pgrepo.GetFilesRow) {
+    @web.ApplicationLayout("Arquivos") {
+        <div class="list-group my-3">
+            <div class="list-group-item list-group-item-action">
+                for _, f := range files {
+                    <a href={ urlbuilder.New("http", "localhost:3030").Path("cvs").Path(strconv.Itoa(int(f.ID))).Build() } class="text-decoration-none">
+                        <div class="row">
+                            <div class="col-md-6">{ f.ID }</div>
+                            <div class="col-md-6">{ f.Name }</div>
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+    }
+}

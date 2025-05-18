@@ -1,0 +1,97 @@
+package cvsui
+
+import "forms/web"
+
+templ New() {
+    @web.ApplicationLayout("Novo CV"){
+        <div class="my-3">
+            <form method="post" action="/cvs">
+                <div class="mb-3">
+                    <label for="cv_name" class="form-label">Nome</label>
+                    <input id="cv_name" type="text" name="name" class="form-control"/>
+                </div>
+
+                <div id="dropzone"
+                     class="border border-primary-subtle rounded d-flex align-items-center justify-content-center text-center mb-3"
+                     style="min-height: 100px; cursor: pointer;">
+                    <span>Clique ou Arraste seus arquivos aqui</span>
+                    <input id="cv_file" multiple="true" hidden type="file" name="files" class="form-control"/>
+                </div>
+
+                <div id="filelist" class="list-group my-2 pointer-cursor"></div>
+
+                <button type="submit" class="btn btn-outline-primary">
+                    Enviar
+                </button>
+            </form>
+        </div>
+
+        <script>
+            let fileListContent = (files) => {
+                let content = ""
+                for ( let file of files ) {
+                    content = content + `<div class="list-group-item list-group-item-action">
+                        <div class="row justify-content-between">
+                            <div class="col-6">${file.name}</div>
+                            <div class="col-6">${file.size} bytes</div>
+                        </div>
+                    </div>`
+                }
+
+                return content
+            }
+
+            let removeDragoverStyle = () => {
+                dropzone.classList.remove("border-success")
+                dropzone.classList.remove("border-4")
+                dropzone.classList.add("border-primary-subtle")
+            }
+
+            let upload = (files) => {
+                const formData = new FormData()
+                for (let file of files) {
+                    formData.append('files', file)
+                }
+
+                fetch("/cvs", {
+                    method: "POST",
+                    body: formData,
+                })
+            }
+
+            const dropzone = document.getElementById("dropzone")
+            const fileList = document.getElementById("filelist")
+            const inputFile = document.getElementById("cv_file")
+
+            dropzone.addEventListener("dragover", e => {
+                e.preventDefault()
+                dropzone.classList.remove("border-primary-subtle")
+                dropzone.classList.add("border-success")
+                dropzone.classList.add("border-4")
+            })
+
+            dropzone.addEventListener("dragleave", e => {
+                e.preventDefault()
+                removeDragoverStyle()
+            })
+
+            dropzone.addEventListener("drop", e => {
+                e.preventDefault()
+                removeDragoverStyle()
+                const files = e.dataTransfer.files
+                upload(files)
+                fileList.innerHTML = fileListContent(files)
+            })
+
+            dropzone.addEventListener("click", e => {
+                inputFile.click()
+            })
+
+            inputFile.addEventListener("change", event => {
+                upload(inputFile.files)
+                fileList.innerHTML = fileListContent(inputFile.files)
+            })
+
+        </script>
+    }
+}
